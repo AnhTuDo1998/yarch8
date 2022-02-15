@@ -54,4 +54,10 @@ impl YARCH8 {
         self.pc += 2;
         (self.ram[fetch_address] as u16) + (self.ram[fetch_address+1] as u16) << 8
     }
+
+    pub fn decode_execute(&self, instruction: u16) {
+        match instruction & 0x8000 {
+            _ => unimplemented!()
+        }
+    }
 }

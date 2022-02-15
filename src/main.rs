@@ -17,6 +17,8 @@ fn main () {
     // Fetch
     let ins = yarch8.fetch();
     println!("{}",ins);
+    
     // Decode
     // Execute
+    yarch8.decode_execute(ins);
 }
