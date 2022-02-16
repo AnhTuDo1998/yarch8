@@ -1,6 +1,7 @@
 use std::io;
 use std::io::prelude::*;
 use std::fs::File;
+use std::time::Duration;
 
 pub struct YARCH8 {
     pc: u16, // only 12 bit = 4096 address possible
@@ -45,6 +46,10 @@ impl YARCH8 {
 
     pub fn start(&mut self) {
         self.pc = 0x200;
+    }
+
+    pub fn stall(&mut self) {
+        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
 
     pub fn fetch(&mut self) -> u16 {

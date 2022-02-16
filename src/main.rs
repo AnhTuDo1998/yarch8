@@ -14,6 +14,7 @@ fn main () {
     yarch8.start();
 
     // TODO: Add loop here
+    loop {
     // Fetch
     let ins = yarch8.fetch();
     println!("{}",ins);
@@ -21,4 +22,8 @@ fn main () {
     // Decode
     // Execute
     yarch8.decode_execute(ins);
+
+        // Time management
+        yarch8.stall();
+    }
 }
