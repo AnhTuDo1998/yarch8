@@ -33,7 +33,6 @@ impl YARCH8 {
         // Read from rom file and write into memory
         let rom_file = File::open(rom_path).expect("Loading ROM error!");
         
-        // TODO: Make it universally little endian...
         for (idx, byte) in rom_file.bytes().enumerate() {
             // Memory start from 0x200 as original platform
             self.ram[0x200 + idx] = byte.expect("Byte error in loading ROM!");
@@ -52,7 +51,7 @@ impl YARCH8 {
         // Read 2B from the current PC address
         let fetch_address = self.pc as usize;
         self.pc += 2;
-        (self.ram[fetch_address] as u16) + (self.ram[fetch_address+1] as u16) << 8
+        ((self.ram[fetch_address] as u16) << 8) + (self.ram[fetch_address+1] as u16)
     }
 
     pub fn decode_execute(&self, instruction: u16) {
