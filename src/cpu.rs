@@ -59,9 +59,26 @@ impl YARCH8 {
         ((self.ram[fetch_address] as u16) << 8) + (self.ram[fetch_address+1] as u16)
     }
 
-    pub fn decode_execute(&self, instruction: u16) {
-        match instruction & 0x8000 {
+    pub fn decode_execute(&mut self, instruction: u16) {
+        match instruction & 0xF000 {
+            // Clear screen
+            0x0000 => (),
+            // Jump
+            0x1000 => self.pc = instruction & 0x0FFF,
+            // Set VXNN
+            0x6000 => {
+                let target_reg = instruction & 0x0F00;
+                self.v_regs[target_reg as usize] = (instruction & 0x00FF) as u8;
+            },
+            // Add to Vx N
+            0x7000 => {
+                let target_reg = instruction & 0x0F00;
+                self.v_regs[target_reg as usize] += (instruction & 0x00FF) as u8;
+            },
+            // Set I NN
+            0xA000 => self.i = instruction & 0x0FFF,
             _ => unimplemented!()
+            // Draw
         }
     }
 }
