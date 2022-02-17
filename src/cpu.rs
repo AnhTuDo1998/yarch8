@@ -96,45 +96,37 @@ impl YARCH8 {
                 // Part 1: Update array of boolean
                 let x_reg: usize = (instruction & 0x0F00) as usize >> 8u8;
                 let y_reg: usize = (instruction & 0x00F0) as usize >> 4u8;
-                let height_n = (instruction & 0x000F) as usize;
-                let mut x_init = usize::try_from(self.v_regs[x_reg]).unwrap() % 64;
-                let mut y_init = usize::try_from(self.v_regs[y_reg]).unwrap() % 32;
+                let n = (instruction & 0x000F) as usize;
+
+                // Set an init value and restart from here every new line of sprite
+                // If we increment by 1 for every sprite, the image is skewed and hit edge...
+                let x_init = usize::try_from(self.v_regs[x_reg]).unwrap() % 64;
+                let y_init = usize::try_from(self.v_regs[y_reg]).unwrap() % 32;
 
                 // Clear flag register
                 self.v_regs[15] = 0;
 
-                for offset  in 0..=height_n {
-                    // Do we hit the bottom edge of screen ?
-                    if y >= 64 {
+                for layer in 0..n {
+                    let y = y_init + layer;
+                    if y >= 32 {
+                        // hit bottom so break!
                         break;
                     }
-                    // Get sprite row
-                    let sprite_row = self.ram[self.i as usize + offset];
-                    // Loop through bit location
-                    for bit_idx in (0..8u32) {
-                        // Hit right edge?
-                        if x >= 32 {
+
+                    // Otw
+                    let sprite: u8 = self.ram[usize::from(self.i) + layer];
+
+                    for bit_pos in 0..8 {
+                        let x = x_init + bit_pos;
+                        if x >= 64 {
                             break;
                         }
-
-                        // Otw try to draw/undraw
-                        let bit = (sprite_row & 0x80).checked_shr(8 - bit_idx).unwrap_or(0);
-                        if bit == 0x1 {
-                            if self.disp_buff[x][y] {
-                                self.v_regs[15] = 1;
-                                self.disp_buff[x][y] = false;
-                            }
-                            else {
-                                self.disp_buff[x][y] = true;
-                            }
-
-                            x+=1;
-                        }
+                        // If apply bit mask = 0 => the pixel is off, no need shift
+                        let b = (sprite & (1 << (7 - bit_pos))) != 0;
+                        let prev_pixel = self.disp_buff[y][x];
+                        self.disp_buff[y][x] = b ^ prev_pixel;
                     }
-
-                    y+=1;
                 }
-                
 
                 // Part 2: Draw the array of boolean
                 self.render_screen();
@@ -155,15 +147,13 @@ impl YARCH8 {
 
         // logic to display render from boolean matrix
         self.canvas.set_draw_color(Color::RGB(255, 255, 255));
-        for (row_idx, row) in self.disp_buff.iter().enumerate() {
-            
-            for (col_idx, pixel) in row.iter().enumerate() {
+        for (y, row) in self.disp_buff.iter().enumerate() {
+            for (x, pixel) in row.iter().enumerate() {
                 // Draw a pixel if it is true
+                println!("x: {}, y: {}", x, y);
                 if *pixel {
                     // For now assume no scaling, so width = height = 1
-                    let x: i32 = i32::try_from(col_idx).unwrap();
-                    let y: i32 = i32::try_from(row_idx).unwrap();
-                    self.canvas.fill_rect(Rect::new(x,y,1,1)).unwrap();
+                    self.canvas.fill_rect(Rect::new(x as i32 ,y as i32 ,1,1)).unwrap();
                 }
             }
         }
