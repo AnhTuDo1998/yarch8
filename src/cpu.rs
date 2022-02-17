@@ -50,6 +50,10 @@ impl YARCH8 {
         println!("{:?}", self.ram);
     }
 
+    pub fn buffer_peek(&self){
+        println!("{:?}", self.disp_buff);
+    }
+
     pub fn start(&mut self) {
         self.pc = 0x200;
     }
@@ -65,6 +69,10 @@ impl YARCH8 {
         ((self.ram[fetch_address] as u16) << 8) + (self.ram[fetch_address + 1] as u16)
     }
 
+    pub fn reg_peek(&mut self) {
+        println!("{:?}", self.v_regs);
+    }
+
     pub fn decode_execute(&mut self, instruction: u16) {
         match instruction & 0xF000 {
             // Clear screen
@@ -73,12 +81,12 @@ impl YARCH8 {
             0x1000 => self.pc = instruction & 0x0FFF,
             // Set VXNN
             0x6000 => {
-                let target_reg: usize = (instruction & 0x0F00) as usize >> 16u8;
+                let target_reg: usize = (instruction & 0x0F00) as usize >> 8u8;
                 self.v_regs[target_reg] = (instruction & 0x00FF) as u8;
             }
             // Add to Vx N
             0x7000 => {
-                let target_reg: usize = (instruction & 0x0F00) as usize >> 16u8;
+                let target_reg: usize = (instruction & 0x0F00) as usize >> 8u8;
                 self.v_regs[target_reg] += (instruction & 0x00FF) as u8;
             }
             // Set I NN
@@ -86,11 +94,11 @@ impl YARCH8 {
             // Draw
             0xD000 => {
                 // Part 1: Update array of boolean
-                let x_reg: usize = (instruction & 0x0F00) as usize >> 16u8;
-                let y_reg: usize = (instruction & 0x00F0) as usize >> 8u8;
+                let x_reg: usize = (instruction & 0x0F00) as usize >> 8u8;
+                let y_reg: usize = (instruction & 0x00F0) as usize >> 4u8;
                 let height_n = (instruction & 0x000F) as usize;
-                let mut x = usize::try_from(self.v_regs[x_reg] & 63).unwrap();
-                let mut y = usize::try_from(self.v_regs[y_reg] & 32).unwrap();
+                let mut x_init = usize::try_from(self.v_regs[x_reg]).unwrap() % 64;
+                let mut y_init = usize::try_from(self.v_regs[y_reg]).unwrap() % 32;
 
                 // Clear flag register
                 self.v_regs[15] = 0;
