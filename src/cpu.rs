@@ -5,6 +5,7 @@ use std::time::Duration;
 
 use sdl2::pixels::Color;
 use sdl2::render::WindowCanvas;
+use sdl2::rect::Rect;
 
 pub struct YARCH8 {
     pc: u16, // only 12 bit = 4096 address possible
@@ -15,7 +16,7 @@ pub struct YARCH8 {
     sound_timer: u8,
     stack: [u16; 16],
     sp: u8,
-    disp_buff: [bool; 64 * 32],
+    disp_buff: [[bool; 64]; 32],
     canvas: WindowCanvas,
 }
 
@@ -84,7 +85,51 @@ impl YARCH8 {
             0xA000 => self.i = instruction & 0x0FFF,
             // Draw
             0xD000 => {
-                self.draw_screen();
+                // Part 1: Update array of boolean
+                let x_reg: usize = (instruction & 0x0F00) as usize >> 16u8;
+                let y_reg: usize = (instruction & 0x00F0) as usize >> 8u8;
+                let height_n = (instruction & 0x000F) as usize;
+                let mut x = usize::try_from(self.v_regs[x_reg] & 63).unwrap();
+                let mut y = usize::try_from(self.v_regs[y_reg] & 32).unwrap();
+
+                // Clear flag register
+                self.v_regs[15] = 0;
+
+                for offset  in 0..=height_n {
+                    // Do we hit the bottom edge of screen ?
+                    if y >= 64 {
+                        break;
+                    }
+                    // Get sprite row
+                    let sprite_row = self.ram[self.i as usize + offset];
+                    // Loop through bit location
+                    for bit_idx in (0..8u32) {
+                        // Hit right edge?
+                        if x >= 32 {
+                            break;
+                        }
+
+                        // Otw try to draw/undraw
+                        let bit = (sprite_row & 0x80).checked_shr(8 - bit_idx).unwrap_or(0);
+                        if bit == 0x1 {
+                            if self.disp_buff[x][y] {
+                                self.v_regs[15] = 1;
+                                self.disp_buff[x][y] = false;
+                            }
+                            else {
+                                self.disp_buff[x][y] = true;
+                            }
+
+                            x+=1;
+                        }
+                    }
+
+                    y+=1;
+                }
+                
+
+                // Part 2: Draw the array of boolean
+                self.render_screen();
             }
             _ => unimplemented!(),
         }
@@ -96,11 +141,24 @@ impl YARCH8 {
         self.canvas.present();
     }
 
-    pub fn draw_screen(&mut self) {
+    pub fn render_screen(&mut self) {
         self.canvas.set_draw_color(Color::RGB(0, 0, 0));
         self.canvas.clear();
 
         // logic to display render from boolean matrix
+        self.canvas.set_draw_color(Color::RGB(255, 255, 255));
+        for (row_idx, row) in self.disp_buff.iter().enumerate() {
+            
+            for (col_idx, pixel) in row.iter().enumerate() {
+                // Draw a pixel if it is true
+                if *pixel {
+                    // For now assume no scaling, so width = height = 1
+                    let x: i32 = i32::try_from(col_idx).unwrap();
+                    let y: i32 = i32::try_from(row_idx).unwrap();
+                    self.canvas.fill_rect(Rect::new(x,y,1,1)).unwrap();
+                }
+            }
+        }
 
         self.canvas.present();
     }
