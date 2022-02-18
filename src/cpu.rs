@@ -46,6 +46,10 @@ impl YARCH8 {
         }
     }
 
+    pub fn get_disp_buff(&self) -> &[[bool; 64];32] {
+        &self.disp_buff
+    }
+
     pub fn ram_peek(&self) {
         println!("{:?}", self.ram);
     }
