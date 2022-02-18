@@ -1,22 +1,29 @@
 pub mod cpu;
+pub mod renderer;
+
 use cpu::YARCH8;
+use renderer::Renderer;
 
 fn main() {
     // SDL2 init
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
 
+    // For scale up original screen size
+    let scale = 10;
+
     let window = video_subsystem
-        .window("YARCH8", 64, 32)
+        .window("YARCH8", 64 * scale, 32 * scale)
         .position_centered()
         .build()
         .unwrap();
 
     // canvas is our screen where we draw sprite
     let mut canvas = window.into_canvas().build().unwrap();
+    let mut renderer = Renderer::new(canvas, scale);
 
     // Init CPU State (where pc, sp are ?)
-    let mut yarch8 = YARCH8::new(canvas);
+    let mut yarch8 = YARCH8::new();
 
     // Read rom file into RAM (load program into memory)
     let rom_path = "ROM/ibm_logo.ch8";

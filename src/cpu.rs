@@ -3,10 +3,6 @@ use std::io;
 use std::io::prelude::*;
 use std::time::Duration;
 
-use sdl2::pixels::Color;
-use sdl2::render::WindowCanvas;
-use sdl2::rect::Rect;
-
 pub struct YARCH8 {
     pc: u16, // only 12 bit = 4096 address possible
     i: u16,  // same
@@ -17,11 +13,10 @@ pub struct YARCH8 {
     stack: [u16; 16],
     sp: u8,
     disp_buff: [[bool; 64]; 32],
-    canvas: WindowCanvas,
 }
 
 impl YARCH8 {
-    pub fn new(canvas: WindowCanvas) -> Self {
+    pub fn new() -> Self {
         YARCH8 {
             pc: 0x0,
             i: 0x0,
@@ -32,7 +27,6 @@ impl YARCH8 {
             stack: [0x0; 16],
             sp: 0x0,
             disp_buff: [[false; 64]; 32],
-            canvas: canvas,
         }
     }
 
@@ -80,7 +74,7 @@ impl YARCH8 {
     pub fn decode_execute(&mut self, instruction: u16) {
         match instruction & 0xF000 {
             // Clear screen
-            0x0000 => self.clear_screen(),
+            0x0000 => self.disp_buff = [[false; 64]; 32],
             // Jump
             0x1000 => self.pc = instruction & 0x0FFF,
             // Set VXNN
@@ -97,7 +91,7 @@ impl YARCH8 {
             0xA000 => self.i = instruction & 0x0FFF,
             // Draw
             0xD000 => {
-                // Part 1: Update array of boolean
+                // Update display buffer
                 let x_reg: usize = (instruction & 0x0F00) as usize >> 8u8;
                 let y_reg: usize = (instruction & 0x00F0) as usize >> 4u8;
                 let n = (instruction & 0x000F) as usize;
@@ -131,37 +125,8 @@ impl YARCH8 {
                         self.disp_buff[y][x] = b ^ prev_pixel;
                     }
                 }
-
-                // Part 2: Draw the array of boolean
-                self.render_screen();
             }
             _ => unimplemented!(),
         }
-    }
-
-    pub fn clear_screen(&mut self) {
-        self.canvas.set_draw_color(Color::RGB(0, 0, 0));
-        self.canvas.clear();
-        self.canvas.present();
-    }
-
-    pub fn render_screen(&mut self) {
-        self.canvas.set_draw_color(Color::RGB(0, 0, 0));
-        self.canvas.clear();
-
-        // logic to display render from boolean matrix
-        self.canvas.set_draw_color(Color::RGB(255, 255, 255));
-        for (y, row) in self.disp_buff.iter().enumerate() {
-            for (x, pixel) in row.iter().enumerate() {
-                // Draw a pixel if it is true
-                println!("x: {}, y: {}", x, y);
-                if *pixel {
-                    // For now assume no scaling, so width = height = 1
-                    self.canvas.fill_rect(Rect::new(x as i32 ,y as i32 ,1,1)).unwrap();
-                }
-            }
-        }
-
-        self.canvas.present();
     }
 }
