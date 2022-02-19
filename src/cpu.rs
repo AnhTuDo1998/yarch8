@@ -40,7 +40,7 @@ impl YARCH8 {
         }
     }
 
-    pub fn get_disp_buff(&self) -> &[[bool; 64];32] {
+    pub fn get_disp_buff(&self) -> &[[bool; 64]; 32] {
         &self.disp_buff
     }
 
@@ -48,7 +48,7 @@ impl YARCH8 {
         println!("{:?}", self.ram);
     }
 
-    pub fn buffer_peek(&self){
+    pub fn buffer_peek(&self) {
         println!("{:?}", self.disp_buff);
     }
 
@@ -57,7 +57,7 @@ impl YARCH8 {
     }
 
     pub fn stall(&mut self) {
-        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 5));
     }
 
     pub fn fetch(&mut self) -> u16 {
