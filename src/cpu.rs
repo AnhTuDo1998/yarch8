@@ -77,6 +77,22 @@ impl YARCH8 {
             0x0000 => self.disp_buff = [[false; 64]; 32],
             // Jump
             0x1000 => self.pc = instruction & 0x0FFF,
+            // Skips or Nops
+            0x3000 => {
+                let target_reg: usize = (instruction & 0x0F00) as usize >> 8u8;
+                let nn = (instruction & 0x00FF) as u8;
+                if self.v_regs[target_reg] == nn {
+                    self.pc += 2;
+                }
+            }
+            0x4000 => {
+                let target_reg: usize = (instruction & 0x0F00) as usize >> 8u8;
+                let nn = (instruction & 0x00FF) as u8;
+                if self.v_regs[target_reg] != nn {
+                    self.pc += 2;
+                }
+            }
+            0x5000 => unimplemented!(),
             // Set VXNN
             0x6000 => {
                 let target_reg: usize = (instruction & 0x0F00) as usize >> 8u8;
@@ -87,6 +103,7 @@ impl YARCH8 {
                 let target_reg: usize = (instruction & 0x0F00) as usize >> 8u8;
                 self.v_regs[target_reg] += (instruction & 0x00FF) as u8;
             }
+            0x9000 => unimplemented!(),
             // Set I NN
             0xA000 => self.i = instruction & 0x0FFF,
             // Draw
