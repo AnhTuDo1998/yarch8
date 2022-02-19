@@ -122,6 +122,10 @@ impl YARCH8 {
                         // If apply bit mask = 0 => the pixel is off, no need shift
                         let b = (sprite & (1 << (7 - bit_pos))) != 0;
                         let prev_pixel = self.disp_buff[y][x];
+                        // Set VF if needed
+                        if (b && prev_pixel) {
+                            self.v_regs[15] = 1;
+                        }
                         self.disp_buff[y][x] = b ^ prev_pixel;
                     }
                 }
