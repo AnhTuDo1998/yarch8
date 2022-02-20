@@ -31,32 +31,18 @@ impl YARCH8 {
     }
 
     pub fn load(&mut self, rom_path: &str) {
-        // Read from rom file and write into memory
+        // Read from rom file and write into memory, from 0x200 onwards
         let rom_file = File::open(rom_path).expect("Loading ROM error!");
-
         for (idx, byte) in rom_file.bytes().enumerate() {
-            // Memory start from 0x200 as original platform
             self.ram[0x200 + idx] = byte.expect("Byte error in loading ROM!");
         }
-    }
-
-    pub fn get_disp_buff(&self) -> &[[bool; 64]; 32] {
-        &self.disp_buff
-    }
-
-    pub fn ram_peek(&self) {
-        println!("{:?}", self.ram);
-    }
-
-    pub fn buffer_peek(&self) {
-        println!("{:?}", self.disp_buff);
     }
 
     pub fn start(&mut self) {
         self.pc = 0x200;
     }
 
-    pub fn stall(&mut self) {
+    pub fn stall(&self) {
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 5));
     }
 
@@ -67,51 +53,41 @@ impl YARCH8 {
         ((self.ram[fetch_address] as u16) << 8) + (self.ram[fetch_address + 1] as u16)
     }
 
-    pub fn reg_peek(&mut self) {
-        println!("{:?}", self.v_regs);
-    }
-
     pub fn decode_execute(&mut self, instruction: u16) {
         match instruction & 0xF000 {
             // Clear screen
             0x0000 => self.disp_buff = [[false; 64]; 32],
             // Jump
-            0x1000 => self.pc = instruction & 0x0FFF,
+            0x1000 => self.pc = self.get_nnn(instruction),
             // Skips or Nops
             0x3000 => {
-                let target_reg: usize = (instruction & 0x0F00) as usize >> 8u8;
-                let nn = (instruction & 0x00FF) as u8;
-                if self.v_regs[target_reg] == nn {
+                if self.v_regs[self.get_vx(instruction)] == self.get_nn(instruction) {
                     self.pc += 2;
                 }
             }
             0x4000 => {
-                let target_reg: usize = (instruction & 0x0F00) as usize >> 8u8;
-                let nn = (instruction & 0x00FF) as u8;
-                if self.v_regs[target_reg] != nn {
+                if self.v_regs[self.get_vx(instruction)] != self.get_nn(instruction) {
                     self.pc += 2;
                 }
             }
             0x5000 => unimplemented!(),
             // Set VXNN
             0x6000 => {
-                let target_reg: usize = (instruction & 0x0F00) as usize >> 8u8;
-                self.v_regs[target_reg] = (instruction & 0x00FF) as u8;
+                self.v_regs[self.get_vx(instruction)] = self.get_nn(instruction);
             }
-            // Add to Vx N
+            // Add to Vx NN
             0x7000 => {
-                let target_reg: usize = (instruction & 0x0F00) as usize >> 8u8;
-                self.v_regs[target_reg] += (instruction & 0x00FF) as u8;
+                self.v_regs[self.get_vx(instruction)] += self.get_nn(instruction);
             }
             0x9000 => unimplemented!(),
             // Set I NN
-            0xA000 => self.i = instruction & 0x0FFF,
+            0xA000 => self.i = self.get_nnn(instruction),
             // Draw
             0xD000 => {
                 // Update display buffer
-                let x_reg: usize = (instruction & 0x0F00) as usize >> 8u8;
-                let y_reg: usize = (instruction & 0x00F0) as usize >> 4u8;
-                let n = (instruction & 0x000F) as usize;
+                let x_reg: usize = self.get_vx(instruction);
+                let y_reg: usize = self.get_vy(instruction);
+                let n = self.get_n(instruction) as usize;
 
                 // Set an init value and restart from here every new line of sprite
                 // If we increment by 1 for every sprite, the image is skewed and hit edge...
@@ -140,7 +116,7 @@ impl YARCH8 {
                         let b = (sprite & (1 << (7 - bit_pos))) != 0;
                         let prev_pixel = self.disp_buff[y][x];
                         // Set VF if needed
-                        if (b && prev_pixel) {
+                        if b && prev_pixel {
                             self.v_regs[15] = 1;
                         }
                         self.disp_buff[y][x] = b ^ prev_pixel;
@@ -149,5 +125,47 @@ impl YARCH8 {
             }
             _ => unimplemented!(),
         }
+    }
+
+    /* UTIL FUNCTIONS:
+    - Get some register from instructions, etc
+    */
+    fn get_vx(&self, instruction: u16) -> usize {
+        (instruction & 0x0F00) as usize >> 8u8
+    }
+
+    fn get_vy(&self, instruction: u16) -> usize {
+        (instruction & 0x00F0) as usize >> 4u8
+    }
+
+    fn get_n(&self, instruction: u16) -> u8 {
+        (instruction & 0x000F) as u8
+    }
+
+    fn get_nn(&self, instruction: u16) -> u8 {
+        (instruction & 0x00FF) as u8
+    }
+
+    fn get_nnn(&self, instruction: u16) -> u16 {
+        instruction & 0x0FFF
+    }
+
+    /* DEBUG FUNCTIONS:
+        Print out stuffs for debugging
+    */
+    pub fn get_disp_buff(&self) -> &[[bool; 64]; 32] {
+        &self.disp_buff
+    }
+
+    pub fn ram_peek(&self) {
+        println!("{:?}", self.ram);
+    }
+
+    pub fn buffer_peek(&self) {
+        println!("{:?}", self.disp_buff);
+    }
+
+    pub fn reg_peek(&self) {
+        println!("{:?}", self.v_regs);
     }
 }
