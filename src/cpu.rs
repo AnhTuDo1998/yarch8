@@ -54,50 +54,53 @@ impl YARCH8 {
     }
 
     pub fn decode_execute(&mut self, instruction: u16) {
+        // Extract
+        let vx: usize = self.get_vx(instruction);
+        let vy: usize = self.get_vy(instruction);
+        let nnn: u16 = self.get_nnn(instruction);
+        let nn: u8 = self.get_nn(instruction);
+        let n: u8 = self.get_n(instruction);
+
+        // Decode
         match instruction & 0xF000 {
             // Clear screen
             0x0000 => self.disp_buff = [[false; 64]; 32],
             // Jump
-            0x1000 => self.pc = self.get_nnn(instruction),
+            0x1000 => self.pc = nnn,
             // Skips or Nops
             0x3000 => {
-                if self.v_regs[self.get_vx(instruction)] == self.get_nn(instruction) {
+                if self.v_regs[vx] == nn {
                     self.pc += 2;
                 }
             }
             0x4000 => {
-                if self.v_regs[self.get_vx(instruction)] != self.get_nn(instruction) {
+                if self.v_regs[vx] != nn {
                     self.pc += 2;
                 }
             }
             0x5000 => unimplemented!(),
             // Set VXNN
             0x6000 => {
-                self.v_regs[self.get_vx(instruction)] = self.get_nn(instruction);
+                self.v_regs[vx] = nn;
             }
             // Add to Vx NN
             0x7000 => {
-                self.v_regs[self.get_vx(instruction)] += self.get_nn(instruction);
+                self.v_regs[vx] += nn;
             }
             0x9000 => unimplemented!(),
             // Set I NN
-            0xA000 => self.i = self.get_nnn(instruction),
+            0xA000 => self.i = nnn,
             // Draw
             0xD000 => {
-                // Update display buffer
-                let x_reg: usize = self.get_vx(instruction);
-                let y_reg: usize = self.get_vy(instruction);
-                let n = self.get_n(instruction) as usize;
-
                 // Set an init value and restart from here every new line of sprite
                 // If we increment by 1 for every sprite, the image is skewed and hit edge...
-                let x_init = usize::try_from(self.v_regs[x_reg]).unwrap() % 64;
-                let y_init = usize::try_from(self.v_regs[y_reg]).unwrap() % 32;
+                let x_init = usize::try_from(self.v_regs[vx]).unwrap() % 64;
+                let y_init = usize::try_from(self.v_regs[vy]).unwrap() % 32;
 
                 // Clear flag register
                 self.v_regs[15] = 0;
 
-                for layer in 0..n {
+                for layer in 0..(n as usize) {
                     let y = y_init + layer;
                     if y >= 32 {
                         // hit bottom so break!
