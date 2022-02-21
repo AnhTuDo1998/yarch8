@@ -18,5 +18,5 @@ CPU - Mimic hardware of the system
 Renderer - Logic to draw updated buffer
 
 # References
-[Cowgod's chip-8 manual](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM)
-[Guide by tobiasvl]https://tobiasvl.github.io/blog/write-a-chip-8-emulator/)
+- [Cowgod's chip-8 manual](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM)
+- [Guide by tobiasvl](https://tobiasvl.github.io/blog/write-a-chip-8-emulator/)
