@@ -78,7 +78,11 @@ impl YARCH8 {
                     self.pc += 2;
                 }
             }
-            0x5000 => unimplemented!(),
+            0x5000 => {
+                if (self.v_regs[vx] == self.v_regs[vy]) {
+                    self.pc += 2;
+                }
+            }
             // Set VXNN
             0x6000 => {
                 self.v_regs[vx] = nn;
@@ -87,7 +91,11 @@ impl YARCH8 {
             0x7000 => {
                 self.v_regs[vx] += nn;
             }
-            0x9000 => unimplemented!(),
+            0x9000 => {
+                if (self.v_regs[vx] != self.v_regs[vy]) {
+                    self.pc += 2;
+                }
+            }
             // Set I NN
             0xA000 => self.i = nnn,
             // Draw
