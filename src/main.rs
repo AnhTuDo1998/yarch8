@@ -19,7 +19,7 @@ fn main() {
         .unwrap();
 
     // canvas is our screen where we draw sprite
-    let mut canvas = window.into_canvas().build().unwrap();
+    let canvas = window.into_canvas().build().unwrap();
     let mut renderer = Renderer::new(canvas, scale);
 
     // Init CPU State (where pc, sp are ?)
