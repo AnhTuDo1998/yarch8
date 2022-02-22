@@ -114,8 +114,27 @@ impl YARCH8 {
             }
             // Add to Vx NN
             0x7000 => {
-                self.v_regs[vx] += nn;
+                let (wrapped_sum, _) = self.v_regs[vx].overflowing_add(nn);
+                self.v_regs[vx] = wrapped_sum;
             }
+            // Arithmetics...
+            0x8000 => match n {
+                0 => self.v_regs[vx] = self.v_regs[vy],
+                1 => self.v_regs[vx] |= self.v_regs[vy],
+                2 => self.v_regs[vx] &= self.v_regs[vy],
+                3 => self.v_regs[vx] ^= self.v_regs[vy],
+                4 => {
+                    let (wrapped_sum, is_overflow) =
+                        self.v_regs[vx].overflowing_add(self.v_regs[vy]);
+                    self.v_regs[vx] = wrapped_sum;
+                    if is_overflow {
+                        self.v_regs[15] = 0x1;
+                    } else {
+                        self.v_regs[15] = 0x0;
+                    }
+                }
+                _ => unimplemented!(),
+            },
             0x9000 => {
                 if self.v_regs[vx] != self.v_regs[vy] {
                     self.pc += 2;
