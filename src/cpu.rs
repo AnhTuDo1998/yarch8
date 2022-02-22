@@ -10,7 +10,7 @@ pub struct YARCH8 {
     delay_timer: u8,
     sound_timer: u8,
     stack: [u16; 16],
-    sp: u8,
+    sp: usize,
     disp_buff: [[bool; 64]; 32],
 }
 
@@ -62,10 +62,36 @@ impl YARCH8 {
 
         // Decode
         match instruction & 0xF000 {
-            // Clear screen
-            0x0000 => self.disp_buff = [[false; 64]; 32],
+            0x0000 => {
+                if nn == 0xE0 {
+                    // Clear screen
+                    self.disp_buff = [[false; 64]; 32];
+                } else if nn == 0xEE {
+                    // Return from routine
+                    if self.sp == 0 {
+                        panic!("Return failed. No return address in stack!");
+                    }
+                    self.pc = self.stack[self.sp - 1];
+                    // Better clear stack
+                    self.stack[self.sp - 1] = 0x0000;
+                    self.sp -= 1;
+                } else {
+                    // Throw error
+                    panic!()
+                }
+            }
             // Jump
             0x1000 => self.pc = nnn,
+            // Call routine
+            0x2000 => {
+                if self.sp >= 16 {
+                    // Stack overflow
+                    panic!("Call routine failed as stack overflow...");
+                }
+                self.stack[self.sp] = self.pc;
+                self.sp += 1;
+                self.pc = nnn;
+            }
             // Skips or Nops
             0x3000 => {
                 if self.v_regs[vx] == nn {
