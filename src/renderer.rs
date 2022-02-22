@@ -12,8 +12,8 @@ pub struct Renderer {
 impl Renderer {
     pub fn new(canvas: WindowCanvas, scale: u32) -> Self {
         Renderer {
-            canvas: canvas,
-            scale: scale,
+            canvas,
+            scale,
             bg_color: Color::RGB(0, 0, 0),
             fg_color: Color::RGB(255, 255, 255),
         }

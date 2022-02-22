@@ -1,5 +1,4 @@
 use std::fs::File;
-use std::io;
 use std::io::prelude::*;
 use std::time::Duration;
 
@@ -79,7 +78,7 @@ impl YARCH8 {
                 }
             }
             0x5000 => {
-                if (self.v_regs[vx] == self.v_regs[vy]) {
+                if self.v_regs[vx] == self.v_regs[vy] {
                     self.pc += 2;
                 }
             }
@@ -92,7 +91,7 @@ impl YARCH8 {
                 self.v_regs[vx] += nn;
             }
             0x9000 => {
-                if (self.v_regs[vx] != self.v_regs[vy]) {
+                if self.v_regs[vx] != self.v_regs[vy] {
                     self.pc += 2;
                 }
             }
