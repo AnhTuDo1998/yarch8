@@ -1,3 +1,4 @@
+use rand;
 use std::fs::File;
 use std::io::prelude::*;
 use std::time::Duration;
@@ -149,6 +150,11 @@ impl YARCH8 {
                 // Assume that CHIP-8 OG is used for now
                 // Jump to NNN + V0 content
                 self.pc = nnn + u16::from(self.v_regs[0]);
+            }
+            0xC000 => {
+                // Gen random number, AND with NN and store in VX
+                let nonce: u8 = rand::random();
+                self.v_regs[vx] = nonce & nn;
             }
             // Draw
             0xD000 => {
