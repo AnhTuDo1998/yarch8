@@ -142,6 +142,14 @@ impl YARCH8 {
             }
             // Set I NN
             0xA000 => self.i = nnn,
+            0xB000 => {
+                // TODO: Adding a check if we are using OG chip-8 or not to allow
+                // multiple behaviour support
+
+                // Assume that CHIP-8 OG is used for now
+                // Jump to NNN + V0 content
+                self.pc = nnn + u16::from(self.v_regs[0]);
+            }
             // Draw
             0xD000 => {
                 // Set an init value and restart from here every new line of sprite
