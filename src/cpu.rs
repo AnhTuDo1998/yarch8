@@ -192,6 +192,21 @@ impl YARCH8 {
                     }
                 }
             }
+            0xF000 => match nn {
+                0x07 => {
+                    // Set VX to delay_timer value
+                    self.v_regs[vx] = self.delay_timer;
+                }
+                0x15 => {
+                    // Set delay timer to vx
+                    self.delay_timer = self.v_regs[vx];
+                }
+                0x18 => {
+                    // Set sound timer to vx
+                    self.sound_timer = self.v_regs[vx];
+                }
+                _ => unimplemented!(),
+            }
             _ => unimplemented!(),
         }
     }
