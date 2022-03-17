@@ -134,6 +134,22 @@ impl YARCH8 {
                         self.v_regs[15] = 0x0;
                     }
                 }
+                6 => {
+                    // TODO: Config to handle ambiguity
+                    // Default to COSMAP VIP OG
+                    // Right shift
+                    self.v_regs[vx] = self.v_regs[vy];
+                    self.v_regs[15] = self.v_regs[vx] & 0x01;
+                    self.v_regs[vx] = self.v_regs[vx] >> 1;
+                }
+                0xE => {
+                    // TODO: Config to handle ambiguity
+                    // Default to COSMAP VIP OG
+                    // Left shift
+                    self.v_regs[vx] = self.v_regs[vy];
+                    self.v_regs[15] = self.v_regs[vx] & 0x80;
+                    self.v_regs[vx] = self.v_regs[vx] << 1;
+                }
                 _ => unimplemented!(),
             },
             0x9000 => {
