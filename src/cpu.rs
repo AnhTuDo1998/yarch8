@@ -134,6 +134,16 @@ impl YARCH8 {
                         self.v_regs[15] = 0x0;
                     }
                 }
+                5 => {
+                    // VX = VX - VY
+                    let (result, is_overflow) = self.v_regs[vx].overflowing_sub(self.v_regs[vy]);
+                    self.v_regs[vx] = result;
+                    if is_overflow {
+                        self.v_regs[15] = 0x0;
+                    } else {
+                        self.v_regs[15] = 0x1;
+                    }
+                }
                 6 => {
                     // TODO: Config to handle ambiguity
                     // Default to COSMAP VIP OG
@@ -141,6 +151,16 @@ impl YARCH8 {
                     self.v_regs[vx] = self.v_regs[vy];
                     self.v_regs[15] = self.v_regs[vx] & 0x01;
                     self.v_regs[vx] = self.v_regs[vx] >> 1;
+                }
+                7 => {
+                    // VX = VY - VX
+                    let (result, is_overflow) = self.v_regs[vy].overflowing_sub(self.v_regs[vx]);
+                    self.v_regs[vx] = result;
+                    if is_overflow {
+                        self.v_regs[15] = 0x0;
+                    } else {
+                        self.v_regs[15] = 0x1;
+                    }
                 }
                 0xE => {
                     // TODO: Config to handle ambiguity
@@ -222,7 +242,7 @@ impl YARCH8 {
                     self.sound_timer = self.v_regs[vx];
                 }
                 _ => unimplemented!(),
-            }
+            },
             _ => unimplemented!(),
         }
     }
