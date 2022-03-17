@@ -241,6 +241,17 @@ impl YARCH8 {
                     // Set sound timer to vx
                     self.sound_timer = self.v_regs[vx];
                 }
+                0x33 => {
+                    // Take digits in VX and write in I, I + 1, ...
+                    let mut num_digit = self.v_regs[vx].to_string().len();
+                    let mut num = self.v_regs[vx];
+                    while num != 0 {
+                        let digit = num.rem_euclid(10);
+                        self.ram[usize::from(self.i) + num_digit - 1] = digit;
+                        num_digit-=1;
+                        num = num.div_euclid(10);
+                    }
+                }
                 _ => unimplemented!(),
             },
             _ => unimplemented!(),
