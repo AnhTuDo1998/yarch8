@@ -8,9 +8,10 @@ fn main() {
     // SDL2 init
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
+    let mut event_pump = sdl_context.event_pump().unwrap();
 
     // For scale up original screen size
-    let scale = 10;
+    let scale = 20;
 
     let window = video_subsystem
         .window("YARCH8", 64 * scale, 32 * scale)
@@ -28,20 +29,22 @@ fn main() {
     // Read rom file into RAM (load program into memory)
     let rom_path = "ROM/ibm_logo.ch8";
     yarch8.load(rom_path);
-    yarch8.ram_peek();
 
     // Start program
     yarch8.start();
 
     // TODO: Add loop here
-    loop {
+    'running: loop {
+        // Handle keys event
+
         // Fetch
         let ins = yarch8.fetch();
-        println!("{}", ins);
+        println!("Fetched instruction: {:#04x}", ins);
 
         // Decode
         // Execute
         yarch8.decode_execute(ins);
+        renderer.render_screen(yarch8.get_disp_buff());
 
         // Debug
         //yarch8.stats_peek();

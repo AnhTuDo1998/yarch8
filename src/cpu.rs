@@ -13,6 +13,7 @@ pub struct YARCH8 {
     stack: [u16; 16],
     sp: usize,
     disp_buff: [[bool; 64]; 32],
+    keys: [bool; 16], // 16 keys pressed or not pressed
 }
 
 impl YARCH8 {
@@ -27,6 +28,7 @@ impl YARCH8 {
             stack: [0x0; 16],
             sp: 0x0,
             disp_buff: [[false; 64]; 32],
+            keys: [false; 16],
         }
     }
 
@@ -256,6 +258,16 @@ impl YARCH8 {
             },
             _ => unimplemented!(),
         }
+    }
+
+    /* Keys Related
+    */
+    fn key_press(&mut self, key: u8){
+        self.keys[usize::from(key)] = true;
+    }
+
+    fn key_released(&mut self, key: u8){
+        self.keys[usize::from(key)] = false;
     }
 
     /* UTIL FUNCTIONS:
