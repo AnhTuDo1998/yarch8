@@ -3,6 +3,8 @@ pub mod renderer;
 
 use cpu::YARCH8;
 use renderer::Renderer;
+use sdl2::event::Event;
+use sdl2::keyboard::Keycode;
 
 fn main() {
     // SDL2 init
@@ -35,8 +37,27 @@ fn main() {
 
     // TODO: Add loop here
     'running: loop {
-        // Handle keys event
-
+        // Handle keys events
+        // TODO: use scancode over keycode in the future
+        for event in event_pump.poll_iter() {
+            match event {
+                Event::Quit {..} |
+                Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
+                    break 'running;
+                },
+                Event::KeyDown { keycode: Some(keycode), ..} => {
+                    if let Some(key_index) = get_keys_index(keycode) {
+                        yarch8.key_press(key_index);
+                    }
+                },
+                Event::KeyUp { keycode: Some(keycode), ..} => {
+                    if let Some(key_index) = get_keys_index(keycode) {
+                        yarch8.key_released(key_index);
+                    }
+                }
+                _ => unimplemented!()
+            }
+        }
         // Fetch
         let ins = yarch8.fetch();
         println!("Fetched instruction: {:#04x}", ins);
@@ -51,5 +72,30 @@ fn main() {
 
         // Time management
         yarch8.stall();
+    }
+}
+
+fn get_keys_index(k: Keycode) -> Option<u8>{
+    return match k {
+        Keycode::Num1 => Some(0),
+        Keycode::Num2 => Some(1),
+        Keycode::Num3 => Some(2),
+        Keycode::Num4 => Some(0xC),
+
+        Keycode::Q => Some(4),
+        Keycode::W => Some(5),
+        Keycode::E => Some(6),
+        Keycode::R => Some(0xD),
+
+        Keycode::A => Some(7),
+        Keycode::S => Some(8),
+        Keycode::D => Some(9),
+        Keycode::F => Some(0xE),
+
+        Keycode::Z => Some(0xA),
+        Keycode::X => Some(0),
+        Keycode::C => Some(0xB),
+        Keycode::V => Some(0xF),
+        _ => None,
     }
 }
