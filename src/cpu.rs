@@ -231,6 +231,21 @@ impl YARCH8 {
                     }
                 }
             }
+            0xE000 => match nn {
+                0x9E => {
+                    // if VX 's value key is pressed, skip (PC +2)
+                    if self.keys[self.v_regs[vx] as usize] {
+                        self.pc += 2;
+                    }
+                }
+                0xA1 => {
+                    // if VX 's value key is not pressed, skip (PC +2)
+                    if !self.keys[self.v_regs[vx] as usize] {
+                        self.pc += 2;
+                    }
+                }
+                _ => unimplemented!(),
+            },
             0xF000 => match nn {
                 0x07 => {
                     // Set VX to delay_timer value
@@ -276,7 +291,7 @@ impl YARCH8 {
                     while num != 0 {
                         let digit = num.rem_euclid(10);
                         self.ram[usize::from(self.i) + num_digit - 1] = digit;
-                        num_digit-=1;
+                        num_digit -= 1;
                         num = num.div_euclid(10);
                     }
                 }
