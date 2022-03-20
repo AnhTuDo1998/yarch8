@@ -2,7 +2,6 @@
 YARCH8 (pronounced as "Zaa Kay") is short for "Yet Another Rust-based CHIP-8", a personal project for practicing Rust by building emulator. YARCH8 name is inspired from the Vietnamese dish Gia Cay.
 
 # Build
-<!-- TODO: Add command line for specifying the binary hex .ch8 to be loaded to run -->
 YARCH8 makes use of Rust's SDL2 wrapper for rendering in drawing sprite. This crate is dependent on libsdl2-dev and maybe installed as:
 ```
 sudo apt install libsdl2-dev
@@ -10,8 +9,16 @@ sudo apt install libsdl2-dev
 
 To build and run the binary
 ```
-cargo run
+cargo run -- -r <Path to ROM file>
 ```
+
+# Controls
+```
+ESC - Quit Emulator
+```
+
+# ROMs and Test
+The project uses 3 ROMs for dev and testing: ibm_logo.ch8 (for testing display command), bc_test.ch8 and test_opcode.ch8 (for full functional testing).
 
 # Modules
 CPU - Mimic hardware of the system
