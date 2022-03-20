@@ -261,12 +261,12 @@ impl YARCH8 {
     }
 
     /* Keys Related
-    */
-    pub fn key_press(&mut self, key: u8){
+     */
+    pub fn key_press(&mut self, key: u8) {
         self.keys[usize::from(key)] = true;
     }
 
-    pub fn key_released(&mut self, key: u8){
+    pub fn key_released(&mut self, key: u8) {
         self.keys[usize::from(key)] = false;
     }
 

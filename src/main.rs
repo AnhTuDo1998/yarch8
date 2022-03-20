@@ -41,21 +41,30 @@ fn main() {
         // TODO: use scancode over keycode in the future
         for event in event_pump.poll_iter() {
             match event {
-                Event::Quit {..} |
-                Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
+                Event::Quit { .. }
+                | Event::KeyDown {
+                    keycode: Some(Keycode::Escape),
+                    ..
+                } => {
                     break 'running;
-                },
-                Event::KeyDown { keycode: Some(keycode), ..} => {
+                }
+                Event::KeyDown {
+                    keycode: Some(keycode),
+                    ..
+                } => {
                     if let Some(key_index) = get_keys_index(keycode) {
                         yarch8.key_press(key_index);
                     }
-                },
-                Event::KeyUp { keycode: Some(keycode), ..} => {
+                }
+                Event::KeyUp {
+                    keycode: Some(keycode),
+                    ..
+                } => {
                     if let Some(key_index) = get_keys_index(keycode) {
                         yarch8.key_released(key_index);
                     }
                 }
-                _ => unimplemented!()
+                _ => {}
             }
         }
         // Fetch
@@ -75,7 +84,7 @@ fn main() {
     }
 }
 
-fn get_keys_index(k: Keycode) -> Option<u8>{
+fn get_keys_index(k: Keycode) -> Option<u8> {
     return match k {
         Keycode::Num1 => Some(0),
         Keycode::Num2 => Some(1),
@@ -97,5 +106,5 @@ fn get_keys_index(k: Keycode) -> Option<u8>{
         Keycode::C => Some(0xB),
         Keycode::V => Some(0xF),
         _ => None,
-    }
+    };
 }
