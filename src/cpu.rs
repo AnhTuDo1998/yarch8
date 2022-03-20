@@ -170,7 +170,7 @@ impl YARCH8 {
                     // Default to modern
                     // Left shift
                     //self.v_regs[vx] = self.v_regs[vy];
-                    self.v_regs[15] = self.v_regs[vx] & 0x80;
+                    self.v_regs[15] = (self.v_regs[vx] & 0x80) >> 7;
                     self.v_regs[vx] = self.v_regs[vx] << 1;
                 }
                 _ => unimplemented!(),
@@ -260,7 +260,7 @@ impl YARCH8 {
                             .keys
                             .iter()
                             .enumerate()
-                            .filter(|(idx, &k)| k)
+                            .filter(|(_, &k)| k)
                             .collect::<Vec<_>>()
                             .first()
                             .unwrap();
