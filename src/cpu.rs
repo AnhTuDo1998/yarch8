@@ -46,7 +46,7 @@ impl YARCH8 {
     }
 
     pub fn stall(&self) {
-        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 5));
+        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
 
     pub fn fetch(&mut self) -> u16 {
@@ -149,9 +149,9 @@ impl YARCH8 {
                 }
                 6 => {
                     // TODO: Config to handle ambiguity
-                    // Default to COSMAP VIP OG
+                    // Default to modern
                     // Right shift
-                    self.v_regs[vx] = self.v_regs[vy];
+                    //self.v_regs[vx] = self.v_regs[vy];
                     self.v_regs[15] = self.v_regs[vx] & 0x01;
                     self.v_regs[vx] = self.v_regs[vx] >> 1;
                 }
@@ -167,9 +167,9 @@ impl YARCH8 {
                 }
                 0xE => {
                     // TODO: Config to handle ambiguity
-                    // Default to COSMAP VIP OG
+                    // Default to modern
                     // Left shift
-                    self.v_regs[vx] = self.v_regs[vy];
+                    //self.v_regs[vx] = self.v_regs[vy];
                     self.v_regs[15] = self.v_regs[vx] & 0x80;
                     self.v_regs[vx] = self.v_regs[vx] << 1;
                 }

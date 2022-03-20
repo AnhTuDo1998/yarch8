@@ -5,8 +5,11 @@ use cpu::YARCH8;
 use renderer::Renderer;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
+use clap::Parser;
 
 fn main() {
+    let args = Args::parse();
+
     // SDL2 init
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
@@ -29,8 +32,8 @@ fn main() {
     let mut yarch8 = YARCH8::new();
 
     // Read rom file into RAM (load program into memory)
-    let rom_path = "ROM/ibm_logo.ch8";
-    yarch8.load(rom_path);
+    let rom_path = args.rom_file_path;
+    yarch8.load(&rom_path);
 
     // Start program
     yarch8.start();
@@ -82,6 +85,15 @@ fn main() {
         // Time management
         yarch8.stall();
     }
+}
+
+/// Yet Another Chip-8 Emulator written in Rust
+#[derive(Parser, Debug)]
+#[clap(author, version, about, long_about = None)]
+struct Args {
+    /// Path to ROM file
+    #[clap(short, long)]
+    rom_file_path: String,
 }
 
 fn get_keys_index(k: Keycode) -> Option<u8> {
