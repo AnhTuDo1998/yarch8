@@ -236,6 +236,25 @@ impl YARCH8 {
                     // Set VX to delay_timer value
                     self.v_regs[vx] = self.delay_timer;
                 }
+                0x0A => {
+                    // Get key pressed, otherwise skip
+                    // Deviate from original behaviour
+                    // Just get the first one pressed from the list
+                    if self.keys.iter().any(|&k| k) {
+                        let (keypressed_idx, _) = *self
+                            .keys
+                            .iter()
+                            .enumerate()
+                            .filter(|(idx, &k)| k)
+                            .collect::<Vec<_>>()
+                            .first()
+                            .unwrap();
+                        self.v_regs[vx] = keypressed_idx as u8;
+                    } else {
+                        // Revert value of PC to basically blocking...
+                        self.pc -= 2;
+                    }
+                }
                 0x15 => {
                     // Set delay timer to vx
                     self.delay_timer = self.v_regs[vx];
@@ -243,6 +262,12 @@ impl YARCH8 {
                 0x18 => {
                     // Set sound timer to vx
                     self.sound_timer = self.v_regs[vx];
+                }
+                0x1E => {
+                    //add to idx
+                    // Here we do not care about setting VF.
+                    // TODO: handle VF if overflow...
+                    self.i += u16::from(self.v_regs[vx]);
                 }
                 0x33 => {
                     // Take digits in VX and write in I, I + 1, ...
