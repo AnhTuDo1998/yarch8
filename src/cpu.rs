@@ -284,6 +284,14 @@ impl YARCH8 {
                     // TODO: handle VF if overflow...
                     self.i += u16::from(self.v_regs[vx]);
                 }
+                0x29 => {
+                    // Font char
+                    // Take lower of vx reg as char
+                    let font_base = 0x50;
+                    let offset = self.v_regs[vx] * 5;
+                    // Set index reg to the address = font_base + offset
+                    self.i = u16::from(font_base + offset);
+                }
                 0x33 => {
                     // Take digits in VX and write in I, I + 1, ...
                     let mut num_digit = self.v_regs[vx].to_string().len();
@@ -293,6 +301,20 @@ impl YARCH8 {
                         self.ram[usize::from(self.i) + num_digit - 1] = digit;
                         num_digit -= 1;
                         num = num.div_euclid(10);
+                    }
+                }
+                0x55 => {
+                    // TODO: Ambiguous instruction
+                    // Load
+                    for idx in 0..=vx {
+                        self.ram[self.i as usize + idx] = self.v_regs[idx];
+                    }
+                }
+                0x65 => {
+                    // TODO: Ambiguous instruction
+                    // Store
+                    for idx in 0..=vx {
+                        self.v_regs[idx] = self.ram[self.i as usize + idx];
                     }
                 }
                 _ => unimplemented!(),
