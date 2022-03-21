@@ -17,7 +17,7 @@ fn main() {
     let mut event_pump = sdl_context.event_pump().unwrap();
 
     // For scale up original screen size
-    let scale = 20;
+    let scale = args.scale;
 
     let window = video_subsystem
         .window("YARCH8", 64 * scale, 32 * scale)
@@ -30,15 +30,15 @@ fn main() {
     let mut renderer = Renderer::new(canvas, scale);
 
     // Init CPU State (where pc, sp are ?)
-    let mut yarch8 = YARCH8::new(60, 700);
+    let mut yarch8 = YARCH8::new(args.timer_freq, args.cpu_freq);
 
     // Read rom file into RAM (load program into memory)
-    let rom_path = args.rom_file_path;
-    yarch8.load(&rom_path);
+    yarch8.load(&args.rom_file_path);
 
     // Start program
     yarch8.start();
     let mut render_start = Instant::now();
+    let render_req_duration = Duration::new(0, 1_000_000_000u32 / args.fps).as_nanos();
 
     // TODO: Add loop here
     'running: loop {
@@ -81,7 +81,7 @@ fn main() {
         yarch8.decode_execute(ins);
 
         let render_now = render_start.elapsed().as_nanos();
-        if render_now > Duration::new(0, 1_000_000_000u32 / 60).as_nanos() {
+        if render_now > render_req_duration {
             renderer.render_screen(yarch8.get_disp_buff());
             render_start = Instant::now();
         }
@@ -109,6 +109,22 @@ struct Args {
     /// Path to ROM file
     #[clap(short, long)]
     rom_file_path: String,
+
+    /// Scale factor for display
+    #[clap(short, long, default_value_t = 20)]
+    scale: u32,
+
+    /// Refresh Rate
+    #[clap(short, long, default_value_t = 60)]
+    fps: u32,
+
+    /// CPU frequency
+    #[clap(short, long, default_value_t = 500)]
+    cpu_freq: u32,
+
+    /// Timer frequency
+    #[clap(short, long, default_value_t = 60)]
+    timer_freq: u32,
 }
 
 fn get_keys_index(k: Keycode) -> Option<u8> {
