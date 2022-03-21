@@ -81,9 +81,16 @@ fn main() {
 
         // Debug
         //yarch8.stats_peek();
+        if yarch8.to_decrease_delay_timer() {
+            yarch8.decrease_delay_timer();
+        }
+
+        if yarch8.to_decrease_sound_timer() {
+            yarch8.decrease_sound_timer();
+        }
 
         // Time management
-        yarch8.stall();
+        yarch8.stall(700);
     }
 }
 

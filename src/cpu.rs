@@ -45,8 +45,8 @@ impl YARCH8 {
         self.pc = 0x200;
     }
 
-    pub fn stall(&self) {
-        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+    pub fn stall(&self, freq: u32) {
+        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / freq));
     }
 
     pub fn fetch(&mut self) -> u16 {
@@ -382,6 +382,22 @@ impl YARCH8 {
 
     fn get_nnn(&self, instruction: u16) -> u16 {
         instruction & 0x0FFF
+    }
+
+    pub fn to_decrease_delay_timer(&self) -> bool {
+        self.delay_timer > 0
+    }
+
+    pub fn to_decrease_sound_timer(&self) -> bool {
+        self.sound_timer > 0
+    }
+
+    pub fn decrease_delay_timer(&mut self){
+        self.delay_timer -= 1;
+    }
+
+    pub fn decrease_sound_timer(&mut self){
+        self.sound_timer -= 1;
     }
 
     /* DEBUG FUNCTIONS:
