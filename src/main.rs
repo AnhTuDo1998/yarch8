@@ -3,9 +3,10 @@ pub mod renderer;
 
 use cpu::YARCH8;
 use renderer::Renderer;
-use sdl2::event::Event;
+use sdl2::{event::Event, render};
 use sdl2::keyboard::Keycode;
 use clap::Parser;
+use std::time::{Duration, Instant};
 
 fn main() {
     let args = Args::parse();
@@ -29,7 +30,7 @@ fn main() {
     let mut renderer = Renderer::new(canvas, scale);
 
     // Init CPU State (where pc, sp are ?)
-    let mut yarch8 = YARCH8::new();
+    let mut yarch8 = YARCH8::new(60, 700);
 
     // Read rom file into RAM (load program into memory)
     let rom_path = args.rom_file_path;
@@ -37,6 +38,7 @@ fn main() {
 
     // Start program
     yarch8.start();
+    let mut render_start = Instant::now();
 
     // TODO: Add loop here
     'running: loop {
@@ -77,10 +79,16 @@ fn main() {
         // Decode
         // Execute
         yarch8.decode_execute(ins);
-        renderer.render_screen(yarch8.get_disp_buff());
+
+        let render_now = render_start.elapsed().as_nanos();
+        if render_now > Duration::new(0, 1_000_000_000u32 / 60).as_nanos() {
+            renderer.render_screen(yarch8.get_disp_buff());
+            render_start = Instant::now();
+        }
 
         // Debug
         //yarch8.stats_peek();
+
         if yarch8.to_decrease_delay_timer() {
             yarch8.decrease_delay_timer();
         }
@@ -90,7 +98,7 @@ fn main() {
         }
 
         // Time management
-        yarch8.stall(700);
+        yarch8.stall();
     }
 }
 

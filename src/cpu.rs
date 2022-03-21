@@ -1,7 +1,7 @@
 use rand;
 use std::fs::File;
 use std::io::prelude::*;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 pub struct YARCH8 {
     pc: u16, // only 12 bit = 4096 address possible
@@ -14,10 +14,14 @@ pub struct YARCH8 {
     sp: usize,
     disp_buff: [[bool; 64]; 32],
     keys: [bool; 16], // 16 keys pressed or not pressed
+    delay_time_start: Instant,
+    sound_time_start: Instant,
+    timer_req_duration: Duration,
+    cycle_req_duration: Duration,
 }
 
 impl YARCH8 {
-    pub fn new() -> Self {
+    pub fn new(timer_freq: u32, cycle_freq:u32) -> Self {
         YARCH8 {
             pc: 0x0,
             i: 0x0,
@@ -29,6 +33,10 @@ impl YARCH8 {
             sp: 0x0,
             disp_buff: [[false; 64]; 32],
             keys: [false; 16],
+            delay_time_start: Instant::now(),
+            sound_time_start: Instant::now(),
+            timer_req_duration: Duration::new(0, 1_000_000_000u32/timer_freq),
+            cycle_req_duration: Duration::new(0, 1_000_000_000u32/cycle_freq),
         }
     }
 
@@ -45,8 +53,8 @@ impl YARCH8 {
         self.pc = 0x200;
     }
 
-    pub fn stall(&self, freq: u32) {
-        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / freq));
+    pub fn stall(&self) {
+        ::std::thread::sleep(self.cycle_req_duration);
     }
 
     pub fn fetch(&mut self) -> u16 {
@@ -273,10 +281,12 @@ impl YARCH8 {
                 0x15 => {
                     // Set delay timer to vx
                     self.delay_timer = self.v_regs[vx];
+                    self.delay_time_start = Instant::now();
                 }
                 0x18 => {
                     // Set sound timer to vx
                     self.sound_timer = self.v_regs[vx];
+                    self.sound_time_start = Instant::now();
                 }
                 0x1E => {
                     //add to idx
@@ -385,19 +395,23 @@ impl YARCH8 {
     }
 
     pub fn to_decrease_delay_timer(&self) -> bool {
-        self.delay_timer > 0
+        let elapsed_time = self.delay_time_start.elapsed().as_nanos();
+        self.delay_timer > 0 && elapsed_time > self.timer_req_duration.as_nanos()
     }
 
     pub fn to_decrease_sound_timer(&self) -> bool {
-        self.sound_timer > 0
+        let elapsed_time = self.delay_time_start.elapsed().as_nanos();
+        self.sound_timer > 0 && elapsed_time > self.timer_req_duration.as_nanos()
     }
 
     pub fn decrease_delay_timer(&mut self){
         self.delay_timer -= 1;
+        self.delay_time_start = Instant::now();
     }
 
     pub fn decrease_sound_timer(&mut self){
         self.sound_timer -= 1;
+        self.sound_time_start = Instant::now();
     }
 
     /* DEBUG FUNCTIONS:
